@@ -86,9 +86,27 @@ a user's perspective instead of introducing an unexplained inconsistency
 between them.
 
 ## Comment 6 — Rebase
-**What conflicted:**
-**How I resolved it:**
-**How I verified no conflict remains:**
+**What conflicted:** While my `feature/watchlist` branch was open, `main` was
+refactored to migrate `Film.id` from an `Integer` to a UUID string
+(`refactor: migrate film IDs from integer to UUID`). My branch's
+`WatchlistEntry` model still defined `film_id` as `db.Integer`, and
+`services/watchlist_service.py` / `routes/watchlist/watchlist.py` both
+had docstrings and type expectations assuming integer film IDs.
+
+**How I resolved it:** After running `git fetch origin` and
+`git rebase origin/main`, the `WatchlistEntry` model was missing from
+`models.py` post-rebase. I re-added it with `film_id` typed as
+`db.String(36)` with a foreign key to `film.id`, matching the UUID pattern
+already used by `CollectionEntry`. I also updated the docstrings in
+`watchlist_service.py` and `routes/watchlist/watchlist.py` that referenced
+integer film IDs, and updated `tests/test_watchlist.py`'s nonexistent-film
+test to use a UUID string (`"00000000-0000-0000-0000-000000000000"`)
+instead of an integer placeholder, since `Film.id` is now a UUID.
+
+**How I verified no conflict remains:** Ran `pytest tests/ -v` to confirm
+all 7 tests pass against the post-refactor schema, and ran
+`git log --oneline --merges` to confirm no merge commits exist in the
+branch history.
 
 ## PR Description
 <!-- Written at the end — feature overview, design decisions, manual testing steps -->

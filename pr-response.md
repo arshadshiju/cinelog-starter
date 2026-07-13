@@ -109,4 +109,29 @@ all 7 tests pass against the post-refactor schema, and ran
 branch history.
 
 ## PR Description
-<!-- Written at the end — feature overview, design decisions, manual testing steps -->
+
+This PR adds a watchlist feature to CineLog, letting users save films they
+want to watch later, view their watchlist, and remove films from it.
+Watchlist entries are deduplicated per user/film pair, matching the existing
+collection feature's behavior.
+
+**Design decisions:**
+- **Default visibility:** Watchlist entries default to `public=False`
+  (private). Since a watchlist reveals a user's current interests before
+  they've watched something, users should opt in to sharing it rather than
+  opt out.
+- **Sort order:** Watchlists are sorted by date added (newest first),
+  matching `get_collection()`'s behavior, since users are more likely to
+  want to see what they just added than to browse alphabetically.
+
+**Manual testing steps:**
+1. Start the server: `python app.py`
+2. Create a user and a film via the existing `/collection` or database
+   fixtures (or use existing seed data if available)
+3. Add a film to the watchlist:
+   `curl -X POST http://127.0.0.1:5000/watchlist/<user_id>/add -H "Content-Type: application/json" -d '{"film_id": "<film_uuid>"}'`
+4. View the watchlist: `curl http://127.0.0.1:5000/watchlist/<user_id>`
+   — confirm the film appears, sorted newest-first if multiple entries exist
+5. Try adding the same film again — confirm it returns an error instead of
+   creating a duplicate
+6. Run the automated test suite: `pytest tests/ -v` — all 7 tests should pass

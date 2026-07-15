@@ -173,3 +173,25 @@ collection feature's behavior.
 5. Try adding the same film again — confirm it returns an error instead of
    creating a duplicate
 6. Run the automated test suite: `pytest tests/ -v` — all 7 tests should pass
+
+## Stretch Features
+
+**`remove_from_watchlist()`:** Added a new service function mirroring
+`remove_from_collection()`'s pattern — it looks up the `WatchlistEntry` for
+the given `user_id`/`film_id`, raises a new `NotInWatchlistError` if no
+entry exists, and deletes it otherwise. Wired up a corresponding
+`DELETE /watchlist/<user_id>/remove` route in `routes/watchlist/watchlist.py`,
+following the same request/response shape as the collection route's
+`remove_film` endpoint. Added two tests: one confirming a successful
+removal deletes the entry, and one confirming that removing a film not on
+the watchlist raises `NotInWatchlistError`.
+
+**Second test (edge case):** I added
+`test_remove_from_watchlist_only_removes_target_film`, which adds two
+different films to the same user's watchlist, removes one, and asserts
+that only the targeted film is gone while the other remains. I chose this
+edge case because deletion bugs that accidentally cascade or over-delete
+are a common real-world failure mode, and it wasn't covered by the
+required nonexistent-film test — that test only checks the "nothing to
+delete" case, not whether a delete operation might unintentionally affect
+other rows for the same user.

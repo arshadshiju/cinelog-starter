@@ -151,3 +151,22 @@ def test_remove_from_watchlist_only_removes_target_film(app, sample_user):
 
         assert film_a.id not in remaining_film_ids
         assert film_b.id in remaining_film_ids
+
+def test_add_to_watchlist_respects_explicit_public_true(app, sample_user, sample_film):
+    """
+    Passing public=True explicitly should override the private default.
+    """
+    with app.app_context():
+        entry = add_to_watchlist(
+            user_id=sample_user, film_id=sample_film, public=True
+        )
+        assert entry.public is True
+
+
+def test_add_to_watchlist_defaults_to_private_when_not_specified(app, sample_user, sample_film):
+    """
+    Not passing public at all should fall back to the model's private default.
+    """
+    with app.app_context():
+        entry = add_to_watchlist(user_id=sample_user, film_id=sample_film)
+        assert entry.public is False

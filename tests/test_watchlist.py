@@ -127,3 +127,27 @@ def test_remove_from_watchlist_not_present_raises(app, sample_user, sample_film)
     with app.app_context():
         with pytest.raises(NotInWatchlistError):
             remove_from_watchlist(user_id=sample_user, film_id=sample_film)
+
+def test_remove_from_watchlist_only_removes_target_film(app, sample_user):
+    """
+    Removing one film from a user's watchlist should not affect other
+    films still on that watchlist.
+    """
+    with app.app_context():
+        from models import Film
+
+        film_a = Film(title="Alien", year=1979, genre="Horror")
+        film_b = Film(title="Blade Runner", year=1982, genre="Sci-Fi")
+        db.session.add_all([film_a, film_b])
+        db.session.commit()
+
+        add_to_watchlist(user_id=sample_user, film_id=film_a.id)
+        add_to_watchlist(user_id=sample_user, film_id=film_b.id)
+
+        remove_from_watchlist(user_id=sample_user, film_id=film_a.id)
+
+        remaining = WatchlistEntry.query.filter_by(user_id=sample_user).all()
+        remaining_film_ids = [entry.film_id for entry in remaining]
+
+        assert film_a.id not in remaining_film_ids
+        assert film_b.id in remaining_film_ids

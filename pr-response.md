@@ -195,3 +195,13 @@ are a common real-world failure mode, and it wasn't covered by the
 required nonexistent-film test — that test only checks the "nothing to
 delete" case, not whether a delete operation might unintentionally affect
 other rows for the same user.
+
+**Visibility toggle:** Added an optional `public` parameter to
+`add_to_watchlist()`. If omitted, the entry falls back to the model's
+default (private, per my Comment 4 reasoning). If explicitly passed,
+it overrides the default — so a caller can create a public watchlist
+entry on purpose rather than only being able to change visibility after
+the fact. Wired the same `public` field through the
+`POST /watchlist/<user_id>/add` route body. Added two tests: one
+confirming `public=True` is respected when passed explicitly, and one
+confirming the default stays private when omitted.
